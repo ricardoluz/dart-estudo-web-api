@@ -17,11 +17,14 @@ class AuthService {
     "{token: [Este campo é obrigatório.]}",
     "{refresh: [Este campo é obrigatório.]}",
     "{detail: Usuário e/ou senha incorreto(s)}",
+    "{detail: O token informado não é válido para qualquer tipo de token}",
+    "{detail: No User matches the given query.}",
   ];
 
   Future<Map<String, dynamic>> xApi({
     required String apiUrl,
     required String method,
+    String tokenBearer = "",
     required Map<String, dynamic>? body,
   }) async {
     http.Response response;
@@ -30,12 +33,27 @@ class AuthService {
       case "get":
         response = await client.get(
           Uri.parse('$url$apiUrl'),
-          headers: {"ContentType": "application/json"},
+          headers: {
+            "ContentType": "application/json",
+            if (tokenBearer.isNotEmpty) "authorization": "Bearer $tokenBearer",
+          },
         );
       case "post":
         response = await client.post(
           Uri.parse('$url$apiUrl'),
-          headers: {"ContentType": "application/json"},
+          headers: {
+            "ContentType": "application/json",
+            if (tokenBearer.isNotEmpty) "authorization": "Bearer $tokenBearer",
+          },
+          body: body,
+        );
+      case "patch":
+        response = await client.patch(
+          Uri.parse('$url$apiUrl'),
+          headers: {
+            "ContentType": "application/json",
+            if (tokenBearer.isNotEmpty) "authorization": "Bearer $tokenBearer",
+          },
           body: body,
         );
       default:
@@ -46,14 +64,13 @@ class AuthService {
     Map<String, dynamic> content = json.decode(utf8.decode(response.bodyBytes));
 
     if (response.statusCode != 200) {
-      String error = content.toString();
+      String error =
+          {content.keys.first: content[content.keys.first]}.toString();
 
-      if (errorMessages.contains(error)){
-        print("object");
+      if (errorMessages.contains(error)) {
         return {"Error": error};
-      }
-      else{
-        throw HttpException(response.body);
+      } else {
+        throw HttpException(error);
       }
     }
 
