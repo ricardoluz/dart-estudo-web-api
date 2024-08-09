@@ -19,6 +19,7 @@ class AuthService {
     "{detail: Usuário e/ou senha incorreto(s)}",
     "{detail: O token informado não é válido para qualquer tipo de token}",
     "{detail: No User matches the given query.}",
+    "{detail: As credenciais de autenticação não foram fornecidas.}",
   ];
 
   Future<Map<String, dynamic>> xApi({
@@ -63,7 +64,7 @@ class AuthService {
 
     Map<String, dynamic> content = json.decode(utf8.decode(response.bodyBytes));
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
       String error =
           {content.keys.first: content[content.keys.first]}.toString();
 

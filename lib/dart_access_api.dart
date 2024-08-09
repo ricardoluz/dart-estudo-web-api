@@ -15,20 +15,11 @@ Future<void> main(List<String> arguments) async {
   String refreshToken;
   String accessToken;
 
-  // Read token: refresh e access.
-  // Map<String, dynamic> token =
-  //     await getToken(user: username, password: password);
-
-  // Read token: refresh e access.
-  Map<String, dynamic> token = await authService.xApi(
-    apiUrl: "/recipes/api/token/",
-    method: "post",
-    body: {"username": username, "password": password},
+  // Read tokens: refresh e access.
+  Map<String, dynamic> token = await readTokens(
+    user: username,
+    password: password,
   );
-  if (token.containsKey("Error")) {
-    //TODO: Create the treatment.
-    exit(0);
-  }
 
   refreshToken = token['refresh'];
   accessToken = token['access'];
@@ -43,6 +34,7 @@ Future<void> main(List<String> arguments) async {
     //TODO: Create the treatment.
     exit(0);
   }
+
   print(verifyToken);
 
   // Refresh token: access
@@ -68,6 +60,29 @@ Future<void> main(List<String> arguments) async {
   print(recipes['previous']);
   print(recipes["results"]);
 
+  // Create recipe
+  Map<String, dynamic>? recipeBody = {
+    "title": "Title of recipe",
+    "description": "Recipe description .....",
+    "preparation_time": "12",
+    "preparation_time_unit": "Minutes",
+    "servings": "2",
+    "servings_unit": "People",
+    "preparation_steps": "Test\n\n....."
+  };
+
+  Map<dynamic, dynamic> createRecipe = await authService.xApi(
+    apiUrl: "/recipes/api/v2/",
+    method: 'post',
+    tokenBearer: accessToken,
+    body: recipeBody,
+  );
+  if (getRefreshToken.containsKey("Error")) {
+    //TODO: Create the treatment.
+    exit(0);
+  }
+  print(createRecipe);
+
   // Author Update
   Map<String, dynamic> patchAuthor = await authService.xApi(
     apiUrl: "/author/api/2/",
@@ -85,10 +100,9 @@ Future<void> main(List<String> arguments) async {
     body: {},
   );
   print(me);
-
 }
 
-Future<Map<String, dynamic>> getToken({
+Future<Map<String, dynamic>> readTokens({
   required String user,
   required String password,
 }) async {
